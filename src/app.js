@@ -35,6 +35,8 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(express.static('src/public'));
+
 
 app.use('/api/products', productRoutes);
 app.use('/api/customers', customerRoutes);
