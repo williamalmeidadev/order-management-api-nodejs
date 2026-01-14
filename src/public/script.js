@@ -65,6 +65,8 @@ async function carregarProdutos() {
         console.error('Erro ao carregar produtos:', error);
         alert('Erro ao carregar produtos!');
     }
+}
+
 // Atualiza todos os selects de produtos nos itens do pedido
 function atualizarSelectProdutos() {
     const selects = document.querySelectorAll('.item-produto');
@@ -83,7 +85,6 @@ function atualizarSelectProdutos() {
             select.appendChild(option);
         });
     });
-}
 }
 
 function renderizarProdutos() {
