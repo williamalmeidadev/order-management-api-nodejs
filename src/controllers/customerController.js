@@ -1,86 +1,38 @@
-import { customers, getNextId } from '../data/customers.js';
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import * as customerService from '../services/customerService.js';
 
 export const getAllCustomers = (req, res) => {
+  const customers = customerService.getAllCustomers();
   res.status(200).json(customers);
 };
 
 export const getCustomerById = (req, res) => {
   const id = Number(req.params.id);
-  const customer = customers.find(c => c.id === id);
-
-  if (!customer) {
-    return res.status(404).json({ message: 'Customer not found' });
-  }
-
+  const customer = customerService.getCustomerById(id);
+  if (!customer) return res.status(404).json({ message: 'Customer not found' });
   res.status(200).json(customer);
 };
 
 export const createCustomer = (req, res) => {
-  const { name, email } = req.body;
-
-  if (typeof name !== 'string' || name.trim() === '') {
-    return res.status(400).json({
-      message: "'name' must be a non-empty string"
-    });
+  try {
+    const newCustomer = customerService.createCustomer(req.body);
+    res.status(201).json(newCustomer);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-
-  if (typeof email !== 'string' || !emailRegex.test(email)) {
-    return res.status(400).json({
-      message: "'email' must be a valid email"
-    });
-  }
-
-  const newCustomer = {
-    id: getNextId(),
-    name: name.trim(),
-    email: email.toLowerCase()
-  };
-
-  customers.push(newCustomer);
-  res.status(201).json(newCustomer);
 };
 
 export const updateCustomer = (req, res) => {
-  const id = Number(req.params.id);
-  const customer = customers.find(c => c.id === id);
-
-  if (!customer) {
-    return res.status(404).json({ message: 'Customer not found' });
+  try {
+    const updatedCustomer = customerService.updateCustomer(Number(req.params.id), req.body);
+    if (!updatedCustomer) return res.status(404).json({ message: 'Customer not found' });
+    res.status(200).json(updatedCustomer);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-
-  const { name, email } = req.body;
-
-  if (name !== undefined) {
-    if (typeof name !== 'string' || name.trim() === '') {
-      return res.status(400).json({
-        message: "'name' must be a non-empty string"
-      });
-    }
-    customer.name = name.trim();
-  }
-
-  if (email !== undefined) {
-    if (typeof email !== 'string' || !emailRegex.test(email)) {
-      return res.status(400).json({
-        message: "'email' must be a valid email"
-      });
-    }
-    customer.email = email.toLowerCase();
-  }
-
-  res.status(200).json(customer);
 };
 
 export const deleteCustomer = (req, res) => {
-  const id = Number(req.params.id);
-  const index = customers.findIndex(c => c.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({ message: 'Customer not found' });
-  }
-
-  const deleted = customers.splice(index, 1);
-  res.status(200).json(deleted[0]);
+  const deletedCustomer = customerService.deleteCustomer(Number(req.params.id));
+  if (!deletedCustomer) return res.status(404).json({ message: 'Customer not found' });
+  res.status(200).json(deletedCustomer);
 };
