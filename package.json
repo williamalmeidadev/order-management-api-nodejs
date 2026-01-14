@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "Simple REST API in Node.js for managing products, customers, and orders.",
   "main": "src/server.js",
-"scripts": {
-  "start": "node src/server.js",
-  "dev": "nodemon src/server.js",
-  "test": "echo \"No tests specified\""
-},
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"No tests specified\""
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/williamalmeidadev/order-management-api-nodejs.git"
@@ -17,5 +18,13 @@
   "bugs": {
     "url": "https://github.com/williamalmeidadev/order-management-api-nodejs/issues"
   },
-  "homepage": "https://github.com/williamalmeidadev/order-management-api-nodejs#readme"
+  "homepage": "https://github.com/williamalmeidadev/order-management-api-nodejs#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
 }
