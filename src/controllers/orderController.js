@@ -144,3 +144,37 @@ export const deleteOrder = (req, res) => {
   const deleted = orders.splice(index, 1);
   res.status(200).json(deleted[0]);
 };
+
+export const searchOrders = (req, res) => {
+  const { product_id, customer_id } = req.query;
+
+  let result = orders;
+
+  if (product_id !== undefined) {
+    const productId = Number(product_id);
+
+    if (!Number.isInteger(productId)) {
+      return res.status(400).json({
+        message: "'product_id' must be an integer"
+      });
+    }
+
+    result = result.filter(order =>
+      order.items.some(item => item.productId === productId)
+    );
+  }
+
+  if (customer_id !== undefined) {
+    const customerId = Number(customer_id);
+
+    if (!Number.isInteger(customerId)) {
+      return res.status(400).json({
+        message: "'customer_id' must be an integer"
+      });
+    }
+
+    result = result.filter(order => order.customerId === customerId);
+  }
+
+  res.status(200).json(result);
+};
