@@ -1,180 +1,47 @@
-import { orders, getNextId } from '../data/orders.js';
-import { products } from '../data/products.js';
-import { customers } from '../data/customers.js';
+import * as orderService from '../services/orderService.js';
 
 export const getAllOrders = (req, res) => {
+  const orders = orderService.getAllOrders();
   res.status(200).json(orders);
 };
 
 export const getOrderById = (req, res) => {
   const id = Number(req.params.id);
-  const order = orders.find(o => o.id === id);
-
-  if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
-
+  const order = orderService.getOrderById(id);
+  if (!order) return res.status(404).json({ message: 'Order not found' });
   res.status(200).json(order);
 };
 
-function calculateTotal(items) {
-  let total = 0;
-
-  for (const item of items) {
-    const product = products.find(p => p.id === item.productId);
-    total += product.value * item.quantity;
-  }
-
-  return Number(total.toFixed(2));
-}
-
 export const createOrder = (req, res) => {
-  const { customerId, items } = req.body;
-
-  const customer = customers.find(c => c.id === Number(customerId));
-  if (!customer) {
-    return res.status(400).json({
-      message: 'Order must have a valid customer'
-    });
+  try {
+    const newOrder = orderService.createOrder(req.body);
+    res.status(201).json(newOrder);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-
-  if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({
-      message: "'items' must be a non-empty array"
-    });
-  }
-
-  for (const item of items) {
-    if (!Number.isInteger(item.productId) || !Number.isInteger(item.quantity)) {
-      return res.status(400).json({
-        message: "'items' must contain productId and quantity as integers"
-      });
-    }
-
-    if (item.quantity <= 0) {
-      return res.status(400).json({
-        message: "'quantity' must be greater than 0"
-      });
-    }
-
-    const product = products.find(p => p.id === item.productId);
-    if (!product) {
-      return res.status(400).json({
-        message: `Product with id ${item.productId} not found`
-      });
-    }
-  }
-
-  const total = calculateTotal(items);
-
-  const newOrder = {
-    id: getNextId(),
-    customerId: Number(customerId),
-    items,
-    total
-  };
-
-  orders.push(newOrder);
-  res.status(201).json(newOrder);
 };
 
 export const updateOrder = (req, res) => {
-  const id = Number(req.params.id);
-  const order = orders.find(o => o.id === id);
-
-  if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
+  try {
+    const updatedOrder = orderService.updateOrder(Number(req.params.id), req.body);
+    if (!updatedOrder) return res.status(404).json({ message: 'Order not found' });
+    res.status(200).json(updatedOrder);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-
-  const { customerId, items } = req.body;
-
-  if (customerId !== undefined) {
-    const customer = customers.find(c => c.id === Number(customerId));
-    if (!customer) {
-      return res.status(400).json({
-        message: 'Order must have a valid customer'
-      });
-    }
-    order.customerId = Number(customerId);
-  }
-
-  if (items !== undefined) {
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({
-        message: "'items' must be a non-empty array"
-      });
-    }
-
-    for (const item of items) {
-      if (!Number.isInteger(item.productId) || !Number.isInteger(item.quantity)) {
-        return res.status(400).json({
-          message: "'items' must contain productId and quantity as integers"
-        });
-      }
-
-      if (item.quantity <= 0) {
-        return res.status(400).json({
-          message: "'quantity' must be greater than 0"
-        });
-      }
-
-      const product = products.find(p => p.id === item.productId);
-      if (!product) {
-        return res.status(400).json({
-          message: `Product with id ${item.productId} not found`
-        });
-      }
-    }
-
-    order.items = items;
-    order.total = calculateTotal(items);
-  }
-
-  res.status(200).json(order);
 };
 
 export const deleteOrder = (req, res) => {
-  const id = Number(req.params.id);
-  const index = orders.findIndex(o => o.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
-
-  const deleted = orders.splice(index, 1);
-  res.status(200).json(deleted[0]);
+  const deletedOrder = orderService.deleteOrder(Number(req.params.id));
+  if (!deletedOrder) return res.status(404).json({ message: 'Order not found' });
+  res.status(200).json(deletedOrder);
 };
 
 export const searchOrders = (req, res) => {
-  const { product_id, customer_id } = req.query;
-
-  let result = orders;
-
-  if (product_id !== undefined) {
-    const productId = Number(product_id);
-
-    if (!Number.isInteger(productId)) {
-      return res.status(400).json({
-        message: "'product_id' must be an integer"
-      });
-    }
-
-    result = result.filter(order =>
-      order.items.some(item => item.productId === productId)
-    );
+  try {
+    const results = orderService.searchOrders(req.query);
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-
-  if (customer_id !== undefined) {
-    const customerId = Number(customer_id);
-
-    if (!Number.isInteger(customerId)) {
-      return res.status(400).json({
-        message: "'customer_id' must be an integer"
-      });
-    }
-
-    result = result.filter(order => order.customerId === customerId);
-  }
-
-  res.status(200).json(result);
 };
