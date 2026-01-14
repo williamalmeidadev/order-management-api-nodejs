@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciamento de Produtos</title>
+    <title>Gerenciamento de Produtos e Clientes</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Gerenciamento de Produtos</h1>
+        <h1>Gerenciamento de Produtos e Clientes</h1>
         
         <div class="tabs">
             <button class="tab-btn active" data-tab="produtos">
@@ -18,6 +18,15 @@
                     <line x1="12" y1="22.08" x2="12" y2="12"></line>
                 </svg>
                 Produtos
+            </button>
+            <button class="tab-btn" data-tab="clientes">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Clientes
             </button>
         </div>
 
@@ -44,6 +53,32 @@
             <div class="section">
                 <h2>Lista de Produtos</h2>
                 <div id="listaProdutos" class="items-list"></div>
+            </div>
+        </div>
+
+        <div id="clientes" class="tab-content">
+            <div class="section">
+                <h2>Cadastrar/Editar Cliente</h2>
+                <form id="clienteForm">
+                    <input type="hidden" id="clienteId">
+                    <div class="form-group">
+                        <label for="clienteNome">Nome:</label>
+                        <input type="text" id="clienteNome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clienteEmail">E-mail:</label>
+                        <input type="email" id="clienteEmail" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="btnSalvarCliente">Salvar Cliente</button>
+                        <button type="button" id="btnCancelarCliente" style="display: none;">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="section">
+                <h2>Lista de Clientes</h2>
+                <div id="listaClientes" class="items-list"></div>
             </div>
         </div>
     </div>
