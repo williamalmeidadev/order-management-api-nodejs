@@ -31,6 +31,12 @@ export const createProduct = (req, res) => {
     });
   }
 
+  if (numValue < 0) {
+    return res.status(400).json({
+      message: "'value' must be greater than or equal to 0"
+    });
+  }
+
   const fixedValue = Number(numValue.toFixed(2));
 
   const newProduct = {
@@ -42,6 +48,7 @@ export const createProduct = (req, res) => {
   products.push(newProduct);
   res.status(201).json(newProduct);
 };
+
 
 
 export const updateProduct = (req, res) => {
@@ -65,11 +72,19 @@ export const updateProduct = (req, res) => {
 
   if (value !== undefined) {
     const numValue = Number(value);
+
     if (Number.isNaN(numValue)) {
       return res.status(400).json({
         message: "'value' must be a numeric value"
       });
     }
+
+    if (numValue < 0) {
+      return res.status(400).json({
+        message: "'value' must be greater than or equal to 0"
+      });
+    }
+
     product.value = Number(numValue.toFixed(2));
   }
 
