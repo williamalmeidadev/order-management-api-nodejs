@@ -175,12 +175,15 @@ async function salvarProduto(e) {
                 body: JSON.stringify(dados)
             });
         }
+        const result = await response.json().catch(() => ({}));
         if (response.ok) {
             cancelarEdicaoProduto();
             await carregarProdutos();
             await carregarPedidos();
             atualizarSelectProdutos();
             alert(isEdicao ? 'Produto atualizado!' : 'Produto criado!');
+        } else {
+            alert(result.message || 'Erro ao salvar produto!');
         }
     } catch (error) {
         console.error('Erro ao salvar produto:', error);
@@ -215,11 +218,14 @@ async function deletarProduto(id) {
         const response = await fetch(`${API_URL}/products/${id}`, {
             method: 'DELETE'
         });
+        const result = await response.json().catch(() => ({}));
         if (response.ok) {
             await carregarProdutos();
             await carregarPedidos();
             atualizarSelectProdutos();
             alert('Produto deletado!');
+        } else {
+            alert(result.message || 'Erro ao deletar produto!');
         }
     } catch (error) {
         console.error('Erro ao deletar produto:', error);
@@ -339,12 +345,15 @@ async function salvarCliente(e) {
                 body: JSON.stringify(dados)
             });
         }
+        const result = await response.json().catch(() => ({}));
         if (response.ok) {
             cancelarEdicaoCliente();
             await carregarClientes();
             await carregarPedidos();
             atualizarSelectClientes();
             alert(isEdicao ? 'Cliente atualizado!' : 'Cliente criado!');
+        } else {
+            alert(result.message || 'Erro ao salvar cliente!');
         }
     } catch (error) {
         console.error('Erro ao salvar cliente:', error);
@@ -383,11 +392,14 @@ async function deletarCliente(id) {
         const response = await fetch(`${API_URL}/customers/${id}`, {
             method: 'DELETE'
         });
+        const result = await response.json().catch(() => ({}));
         if (response.ok) {
             await carregarClientes();
             await carregarPedidos();
             atualizarSelectClientes();
             alert('Cliente deletado!');
+        } else {
+            alert(result.message || 'Erro ao deletar cliente!');
         }
     } catch (error) {
         console.error('Erro ao deletar cliente:', error);
@@ -627,14 +639,13 @@ async function salvarPedido(e) {
             });
         }
         
-        const result = await response.json();
-        
+        const result = await response.json().catch(() => ({}));
         if (response.ok) {
             cancelarEdicaoPedido();
             await carregarDados();
             alert(isEdicao ? 'Pedido atualizado!' : 'Pedido criado!');
         } else {
-            alert(result.error || 'Erro ao salvar pedido!');
+            alert(result.message || result.error || 'Erro ao salvar pedido!');
         }
     } catch (error) {
         console.error('Erro ao salvar pedido:', error);
@@ -737,9 +748,12 @@ async function deletarPedido(id) {
             method: 'DELETE'
         });
         
+        const result = await response.json().catch(() => ({}));
         if (response.ok) {
             await carregarPedidos();
             alert('Pedido deletado!');
+        } else {
+            alert(result.message || result.error || 'Erro ao deletar pedido!');
         }
     } catch (error) {
         console.error('Erro ao deletar pedido:', error);
