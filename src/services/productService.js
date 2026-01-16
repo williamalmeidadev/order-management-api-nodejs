@@ -1,10 +1,33 @@
-import { products, getNextId } from '../data/products.js';
+import { getDB } from '../db/index.js';
+import { PRODUCTS_PREFIX, getNextId } from '../data/products.js';
 
-export const getAllProducts = () => products;
+const getAllProducts = async () => {
+  const db = getDB();
+  const products = [];
+  
+  for await (const [key, value] of db.iterator()) {
+    if (key.startsWith(PRODUCTS_PREFIX) && key !== 'product:counter') {
+      products.push(value);
+    }
+  }
+  
+  return products;
+};
 
-export const getProductById = (id) => products.find(p => p.id === id);
+const getProductById = async (id) => {
+  const db = getDB();
+  try {
+    const product = await db.get(`${PRODUCTS_PREFIX}${id}`);
+    return product;
+  } catch (error) {
+    if (error.code === 'LEVEL_NOT_FOUND') {
+      return null;
+    }
+    throw error;
+  }
+};
 
-export const createProduct = ({ name, value }) => {
+const createProduct = async ({ name, value }) => {
   if (typeof name !== 'string' || name.trim() === '') {
     throw new Error("'name' must be a non-empty string");
   }
@@ -15,18 +38,21 @@ export const createProduct = ({ name, value }) => {
 
   const fixedValue = Number(numValue.toFixed(2));
 
+  const id = await getNextId();
   const newProduct = {
-    id: getNextId(),
+    id,
     name: name.trim(),
     value: fixedValue
   };
 
-  products.push(newProduct);
+  const db = getDB();
+  await db.put(`${PRODUCTS_PREFIX}${id}`, newProduct);
+  
   return newProduct;
 };
 
-export const updateProduct = (id, { name, value }) => {
-  const product = products.find(p => p.id === id);
+const updateProduct = async (id, { name, value }) => {
+  const product = await getProductById(id);
   if (!product) return null;
 
   if (name !== undefined) {
@@ -43,11 +69,26 @@ export const updateProduct = (id, { name, value }) => {
     product.value = Number(numValue.toFixed(2));
   }
 
+  const db = getDB();
+  await db.put(`${PRODUCTS_PREFIX}${id}`, product);
+  
   return product;
 };
 
-export const deleteProduct = (id) => {
-  const index = products.findIndex(p => p.id === id);
-  if (index === -1) return null;
-  return products.splice(index, 1)[0];
+const deleteProduct = async (id) => {
+  const product = await getProductById(id);
+  if (!product) return null;
+
+  const db = getDB();
+  await db.del(`${PRODUCTS_PREFIX}${id}`);
+  
+  return product;
+};
+
+export {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct
 };
