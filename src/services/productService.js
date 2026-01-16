@@ -1,10 +1,18 @@
-import { products, getNextId } from '../data/products.js';
+import productRepository from '../repositories/productRepository.js';
 
-export const getAllProducts = () => products;
+let idCounter = 1;
 
-export const getProductById = (id) => products.find(p => p.id === id);
+const getNextId = () => idCounter++;
 
-export const createProduct = ({ name, value }) => {
+const getAllProducts = async () => {
+  return await productRepository.findAll();
+};
+
+const getProductById = async (id) => {
+  return await productRepository.findById(id);
+};
+
+const createProduct = async ({ name, value }) => {
   if (typeof name !== 'string' || name.trim() === '') {
     throw new Error("'name' must be a non-empty string");
   }
@@ -15,18 +23,20 @@ export const createProduct = ({ name, value }) => {
 
   const fixedValue = Number(numValue.toFixed(2));
 
+  const id = getNextId();
   const newProduct = {
-    id: getNextId(),
+    id,
     name: name.trim(),
     value: fixedValue
   };
 
-  products.push(newProduct);
+  await productRepository.create(id, newProduct);
+  
   return newProduct;
 };
 
-export const updateProduct = (id, { name, value }) => {
-  const product = products.find(p => p.id === id);
+const updateProduct = async (id, { name, value }) => {
+  const product = await getProductById(id);
   if (!product) return null;
 
   if (name !== undefined) {
@@ -43,11 +53,24 @@ export const updateProduct = (id, { name, value }) => {
     product.value = Number(numValue.toFixed(2));
   }
 
+  await productRepository.update(id, product);
+  
   return product;
 };
 
-export const deleteProduct = (id) => {
-  const index = products.findIndex(p => p.id === id);
-  if (index === -1) return null;
-  return products.splice(index, 1)[0];
+const deleteProduct = async (id) => {
+  const product = await getProductById(id);
+  if (!product) return null;
+
+  await productRepository.delete(id);
+  
+  return product;
+};
+
+export {
+  getAllProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct
 };
