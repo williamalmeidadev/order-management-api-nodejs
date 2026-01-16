@@ -1,10 +1,7 @@
 import customerRepository from '../repositories/customerRepository.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-let idCounter = 1;
-
-const getNextId = () => idCounter++;
 
 export const getAllCustomers = async () => {
   return await customerRepository.findAll();
@@ -22,7 +19,7 @@ export const createCustomer = async ({ name, email }) => {
     throw new Error("'email' must be a valid email");
   }
 
-  const id = getNextId();
+  const id = uuidv4();
   const newCustomer = { id, name: name.trim(), email: email.toLowerCase() };
   await customerRepository.create(id, newCustomer);
   return newCustomer;

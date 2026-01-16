@@ -1,8 +1,5 @@
 import productRepository from '../repositories/productRepository.js';
-
-let idCounter = 1;
-
-const getNextId = () => idCounter++;
+import { v4 as uuidv4 } from 'uuid';
 
 const getAllProducts = async () => {
   return await productRepository.findAll();
@@ -23,7 +20,7 @@ const createProduct = async ({ name, value }) => {
 
   const fixedValue = Number(numValue.toFixed(2));
 
-  const id = getNextId();
+  const id = uuidv4();
   const newProduct = {
     id,
     name: name.trim(),

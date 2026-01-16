@@ -1,10 +1,7 @@
 import orderRepository from '../repositories/orderRepository.js';
 import productRepository from '../repositories/productRepository.js';
 import customerRepository from '../repositories/customerRepository.js';
-
-let idCounter = 1;
-
-const getNextId = () => idCounter++;
+import { v4 as uuidv4 } from 'uuid';
 
 const calculateTotal = async (items) => {
   let sum = 0;
@@ -26,7 +23,7 @@ export const getOrderById = async (id) => {
 };
 
 export const createOrder = async ({ customerId, items }) => {
-  const customer = await customerRepository.findById(Number(customerId));
+  const customer = await customerRepository.findById(customerId);
   if (!customer) throw new Error('Order must have a valid customer');
 
   if (!Array.isArray(items) || items.length === 0) {
@@ -34,8 +31,8 @@ export const createOrder = async ({ customerId, items }) => {
   }
 
   for (const item of items) {
-    if (!Number.isInteger(item.productId) || !Number.isInteger(item.quantity)) {
-      throw new Error("'items' must contain productId and quantity as integers");
+    if (!item.productId || !Number.isInteger(item.quantity)) {
+      throw new Error("'items' must contain productId and quantity (integer)");
     }
     if (item.quantity <= 0) throw new Error("'quantity' must be greater than 0");
     const product = await productRepository.findById(item.productId);
@@ -44,10 +41,10 @@ export const createOrder = async ({ customerId, items }) => {
 
   const total = await calculateTotal(items);
 
-  const id = getNextId();
+  const id = uuidv4();
   const newOrder = {
     id,
-    customerId: Number(customerId),
+    customerId,
     items,
     total
   };
@@ -61,17 +58,17 @@ export const updateOrder = async (id, { customerId, items }) => {
   if (!order) return null;
 
   if (customerId !== undefined) {
-    const customer = await customerRepository.findById(Number(customerId));
+    const customer = await customerRepository.findById(customerId);
     if (!customer) throw new Error('Order must have a valid customer');
-    order.customerId = Number(customerId);
+    order.customerId = customerId;
   }
 
   if (items !== undefined) {
     if (!Array.isArray(items) || items.length === 0) throw new Error("'items' must be a non-empty array");
 
     for (const item of items) {
-      if (!Number.isInteger(item.productId) || !Number.isInteger(item.quantity)) {
-        throw new Error("'items' must contain productId and quantity as integers");
+      if (!item.productId || !Number.isInteger(item.quantity)) {
+        throw new Error("'items' must contain productId and quantity (integer)");
       }
       if (item.quantity <= 0) throw new Error("'quantity' must be greater than 0");
       const product = await productRepository.findById(item.productId);
@@ -97,19 +94,13 @@ export const searchOrders = async ({ product_id, customer_id }) => {
   let result = await orderRepository.findAll();
 
   if (product_id !== undefined) {
-    const productId = Number(product_id);
-    if (!Number.isInteger(productId)) throw new Error("'product_id' must be an integer");
-
     result = result.filter(order =>
-      order.items.some(item => item.productId === productId)
+      order.items.some(item => item.productId === product_id)
     );
   }
 
   if (customer_id !== undefined) {
-    const customerId = Number(customer_id);
-    if (!Number.isInteger(customerId)) throw new Error("'customer_id' must be an integer");
-
-    result = result.filter(order => order.customerId === customerId);
+    result = result.filter(order => order.customerId === customer_id);
   }
 
   return result;
