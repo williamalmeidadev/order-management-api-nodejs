@@ -3,11 +3,15 @@ const API_URL = 'http://localhost:3000/api';
 let products = [];
 let customers = [];
 let orders = [];
+let users = [];
 let editingProductId = null;
 let editingCustomerId = null;
 let editingOrderId = null;
+let editingUserId = null;
+let currentUserRole = null;
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkUserRole();
     setupTabs();
     setupEvents();
     loadData();
@@ -37,6 +41,8 @@ function setupTabs() {
                 await loadProducts();
                 await loadCustomers();
                 await updateSearchSelects();
+            } else if (tabName === 'users') {
+                await loadUsers();
             }
         });
     });
@@ -53,6 +59,11 @@ function setupEvents() {
     document.getElementById('searchForm').addEventListener('submit', searchOrders);
     document.getElementById('btnClearSearch').addEventListener('click', clearSearch);
     document.getElementById('btnLogout').addEventListener('click', handleLogout);
+    
+    const userForm = document.getElementById('userForm');
+    const btnCancelUser = document.getElementById('btnCancelUser');
+    if (userForm) userForm.addEventListener('submit', saveUser);
+    if (btnCancelUser) btnCancelUser.addEventListener('click', cancelUserEdit);
 }
 
 async function loadProducts() {
@@ -80,7 +91,7 @@ function updateProductSelects() {
             const option = document.createElement('option');
             option.value = p.id;
             option.textContent = `${p.name} - $ ${p.value.toFixed(2)}`;
-            if (String(p.id) === selectedValue) option.selected = true;
+            if (p.id === selectedValue) option.selected = true;
             select.appendChild(option);
         });
     });
@@ -589,7 +600,7 @@ function removeOrderItem(btn) {
 async function saveOrder(e) {
     e.preventDefault();
     
-    const customerId = parseInt(document.getElementById('orderCustomer').value);
+    const customerId = document.getElementById('orderCustomer').value;
     
     if (!customerId) {
         alert('Select a customer!');
@@ -606,7 +617,7 @@ async function saveOrder(e) {
     
     const items = [];
     itemsElements.forEach(item => {
-        const productId = parseInt(item.querySelector('.item-product').value);
+        const productId = item.querySelector('.item-product').value;
         const quantity = parseInt(item.querySelector('.item-quantity').value);
         
         if (productId && quantity > 0) {
@@ -879,6 +890,216 @@ function clearSearch() {
     document.getElementById('searchForm').reset();
     const container = document.getElementById('searchResults');
     container.innerHTML = '<div class="empty-message">Use the filters above to search orders</div>';
+}
+
+async function checkUserRole() {
+    try {
+        const response = await fetch(`${API_URL}/login/verify`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentUserRole = data.user.role;
+            
+            if (currentUserRole === 'admin') {
+                document.getElementById('usersTabBtn').style.display = 'flex';
+            }
+        }
+    } catch (error) {
+        console.error('Error checking user role:', error);
+    }
+}
+
+async function loadUsers() {
+    try {
+        const response = await fetch(`${API_URL}/login/all`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            alert('You do not have permission to view users');
+            return;
+        }
+        
+        users = await response.json();
+        renderUsers();
+    } catch (error) {
+        console.error('Error loading users:', error);
+        alert('Error loading users!');
+    }
+}
+
+function renderUsers() {
+    const list = document.getElementById('userList');
+    list.innerHTML = '';
+    
+    if (users.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'empty-message';
+        emptyMsg.textContent = 'No users registered';
+        list.appendChild(emptyMsg);
+        return;
+    }
+    
+    users.forEach(user => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        
+        const header = document.createElement('div');
+        header.className = 'item-header';
+        
+        const title = document.createElement('span');
+        title.className = 'item-title';
+        title.textContent = user.username;
+        
+        const actions = document.createElement('div');
+        actions.className = 'item-actions';
+        
+        const btnEdit = document.createElement('button');
+        btnEdit.className = 'btn-edit';
+        btnEdit.textContent = 'Edit';
+        btnEdit.onclick = () => editUser(user.username);
+        
+        const btnDelete = document.createElement('button');
+        btnDelete.className = 'btn-delete';
+        btnDelete.textContent = 'Delete';
+        btnDelete.onclick = () => deleteUser(user.username);
+        
+        actions.appendChild(btnEdit);
+        actions.appendChild(btnDelete);
+        
+        header.appendChild(title);
+        header.appendChild(actions);
+        
+        const info = document.createElement('div');
+        info.className = 'item-info';
+        
+        const emailDiv = document.createElement('div');
+        emailDiv.textContent = `Email: ${user.email}`;
+        
+        const roleDiv = document.createElement('div');
+        roleDiv.textContent = `Role: ${user.role}`;
+        roleDiv.style.marginTop = '5px';
+        roleDiv.style.color = user.role === 'admin' ? '#3b82f6' : '#888';
+        roleDiv.style.fontWeight = user.role === 'admin' ? '600' : 'normal';
+        
+        info.appendChild(emailDiv);
+        info.appendChild(roleDiv);
+        
+        card.appendChild(header);
+        card.appendChild(info);
+        
+        list.appendChild(card);
+    });
+}
+
+async function saveUser(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('userUsername').value;
+    const email = document.getElementById('userEmail').value;
+    const password = document.getElementById('userPassword').value;
+    const role = document.getElementById('userRole').value;
+    
+    const data = {
+        username: username,
+        email: email,
+        password: password,
+        role: role
+    };
+    
+    try {
+        let response;
+        const isEditing = editingUserId;
+        
+        if (isEditing) {
+            const updateData = { email, role };
+            if (password) updateData.password = password;
+            
+            response = await fetch(`${API_URL}/login/${editingUserId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(updateData)
+            });
+        } else {
+            response = await fetch(`${API_URL}/login/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+        }
+        
+        const result = await response.json().catch(() => ({}));
+        
+        if (response.ok) {
+            cancelUserEdit();
+            await loadUsers();
+            alert(isEditing ? 'User updated!' : 'User created!');
+        } else {
+            alert(result.message || 'Error saving user!');
+        }
+    } catch (error) {
+        console.error('Error saving user:', error);
+        alert('Error saving user!');
+    }
+}
+
+function editUser(username) {
+    const user = users.find(u => u.username === username);
+    if (!user) return;
+    
+    editingUserId = username;
+    document.getElementById('userId').value = user.id;
+    document.getElementById('userUsername').value = user.username;
+    document.getElementById('userUsername').disabled = true;
+    document.getElementById('userEmail').value = user.email;
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userPassword').required = false;
+    document.getElementById('userPassword').placeholder = 'Leave blank to keep current password';
+    document.getElementById('userRole').value = user.role;
+    document.getElementById('btnSaveUser').textContent = 'Update User';
+    document.getElementById('btnCancelUser').style.display = 'inline-block';
+    
+    document.querySelector('[data-tab="users"]').click();
+    setTimeout(() => {
+        document.querySelector('#users .section').scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+}
+
+function cancelUserEdit() {
+    editingUserId = null;
+    document.getElementById('userForm').reset();
+    document.getElementById('userUsername').disabled = false;
+    document.getElementById('userPassword').required = true;
+    document.getElementById('userPassword').placeholder = '';
+    document.getElementById('btnSaveUser').textContent = 'Save User';
+    document.getElementById('btnCancelUser').style.display = 'none';
+}
+
+async function deleteUser(username) {
+    if (!confirm('Do you really want to delete this user?')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/login/${username}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        const result = await response.json().catch(() => ({}));
+        
+        if (response.ok) {
+            await loadUsers();
+            alert('User deleted!');
+        } else {
+            alert(result.message || 'Error deleting user!');
+        }
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Error deleting user!');
+    }
 }
 
 async function handleLogout() {
