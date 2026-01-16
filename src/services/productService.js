@@ -1,30 +1,15 @@
-import { getDB } from '../db/index.js';
-import { PRODUCTS_PREFIX, getNextId } from '../data/products.js';
+import productRepository from '../repositories/productRepository.js';
+
+let idCounter = 1;
+
+const getNextId = () => idCounter++;
 
 const getAllProducts = async () => {
-  const db = getDB();
-  const products = [];
-  
-  for await (const [key, value] of db.iterator()) {
-    if (key.startsWith(PRODUCTS_PREFIX) && key !== 'product:counter') {
-      products.push(value);
-    }
-  }
-  
-  return products;
+  return await productRepository.findAll();
 };
 
 const getProductById = async (id) => {
-  const db = getDB();
-  try {
-    const product = await db.get(`${PRODUCTS_PREFIX}${id}`);
-    return product;
-  } catch (error) {
-    if (error.code === 'LEVEL_NOT_FOUND') {
-      return null;
-    }
-    throw error;
-  }
+  return await productRepository.findById(id);
 };
 
 const createProduct = async ({ name, value }) => {
@@ -38,15 +23,14 @@ const createProduct = async ({ name, value }) => {
 
   const fixedValue = Number(numValue.toFixed(2));
 
-  const id = await getNextId();
+  const id = getNextId();
   const newProduct = {
     id,
     name: name.trim(),
     value: fixedValue
   };
 
-  const db = getDB();
-  await db.put(`${PRODUCTS_PREFIX}${id}`, newProduct);
+  await productRepository.create(id, newProduct);
   
   return newProduct;
 };
@@ -69,8 +53,7 @@ const updateProduct = async (id, { name, value }) => {
     product.value = Number(numValue.toFixed(2));
   }
 
-  const db = getDB();
-  await db.put(`${PRODUCTS_PREFIX}${id}`, product);
+  await productRepository.update(id, product);
   
   return product;
 };
@@ -79,8 +62,7 @@ const deleteProduct = async (id) => {
   const product = await getProductById(id);
   if (!product) return null;
 
-  const db = getDB();
-  await db.del(`${PRODUCTS_PREFIX}${id}`);
+  await productRepository.delete(id);
   
   return product;
 };

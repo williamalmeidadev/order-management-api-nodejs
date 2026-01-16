@@ -1,54 +1,67 @@
-import { orders, getNextId } from '../data/orders.js';
-import { products } from '../data/products.js';
-import { customers } from '../data/customers.js';
+import orderRepository from '../repositories/orderRepository.js';
+import productRepository from '../repositories/productRepository.js';
+import customerRepository from '../repositories/customerRepository.js';
 
-const calculateTotal = (items) => {
-  return Number(items.reduce((sum, item) => {
-    const product = products.find(p => p.id === item.productId);
-    return sum + (product ? product.value * item.quantity : 0);
-  }, 0).toFixed(2));
+let idCounter = 1;
+
+const getNextId = () => idCounter++;
+
+const calculateTotal = async (items) => {
+  let sum = 0;
+  for (const item of items) {
+    const product = await productRepository.findById(item.productId);
+    if (product) {
+      sum += product.value * item.quantity;
+    }
+  }
+  return Number(sum.toFixed(2));
 };
 
-export const getAllOrders = () => orders;
+export const getAllOrders = async () => {
+  return await orderRepository.findAll();
+};
 
-export const getOrderById = (id) => orders.find(o => o.id === id);
+export const getOrderById = async (id) => {
+  return await orderRepository.findById(id);
+};
 
-export const createOrder = ({ customerId, items }) => {
-  const customer = customers.find(c => c.id === Number(customerId));
+export const createOrder = async ({ customerId, items }) => {
+  const customer = await customerRepository.findById(Number(customerId));
   if (!customer) throw new Error('Order must have a valid customer');
 
   if (!Array.isArray(items) || items.length === 0) {
     throw new Error("'items' must be a non-empty array");
   }
 
-  items.forEach(item => {
+  for (const item of items) {
     if (!Number.isInteger(item.productId) || !Number.isInteger(item.quantity)) {
       throw new Error("'items' must contain productId and quantity as integers");
     }
     if (item.quantity <= 0) throw new Error("'quantity' must be greater than 0");
-    const product = products.find(p => p.id === item.productId);
+    const product = await productRepository.findById(item.productId);
     if (!product) throw new Error(`Product with id ${item.productId} not found`);
-  });
+  }
 
-  const total = calculateTotal(items);
+  const total = await calculateTotal(items);
 
+  const id = getNextId();
   const newOrder = {
-    id: getNextId(),
+    id,
     customerId: Number(customerId),
     items,
     total
   };
 
-  orders.push(newOrder);
+  await orderRepository.create(id, newOrder);
   return newOrder;
 };
 
-export const updateOrder = (id, { customerId, items }) => {
-  const order = orders.find(o => o.id === id);
+export const updateOrder = async (id, { customerId, items }) => {
+  const order = await orderRepository.findById(id);
   if (!order) return null;
 
   if (customerId !== undefined) {
-    const customer = customers.find(c => c.id === Number(customerId));
+    const customer = await customerRepository.findById(Number(customerId));
     if (!customer) throw new Error('Order must have a valid customer');
     order.customerId = Number(customerId);
   }
@@ -56,30 +69,32 @@ export const updateOrder = (id, { customerId, items }) => {
   if (items !== undefined) {
     if (!Array.isArray(items) || items.length === 0) throw new Error("'items' must be a non-empty array");
 
-    items.forEach(item => {
+    for (const item of items) {
       if (!Number.isInteger(item.productId) || !Number.isInteger(item.quantity)) {
         throw new Error("'items' must contain productId and quantity as integers");
       }
       if (item.quantity <= 0) throw new Error("'quantity' must be greater than 0");
-      const product = products.find(p => p.id === item.productId);
+      const product = await productRepository.findById(item.productId);
       if (!product) throw new Error(`Product with id ${item.productId} not found`);
-    });
+    }
 
     order.items = items;
-    order.total = calculateTotal(items);
+    order.total = await calculateTotal(items);
   }
 
+  await orderRepository.update(id, order);
   return order;
 };
 
-export const deleteOrder = (id) => {
-  const index = orders.findIndex(o => o.id === id);
-  if (index === -1) return null;
-  return orders.splice(index, 1)[0];
+export const deleteOrder = async (id) => {
+  const order = await orderRepository.findById(id);
+  if (!order) return null;
+  await orderRepository.delete(id);
+  return order;
 };
 
-export const searchOrders = ({ product_id, customer_id }) => {
-  let result = orders;
+export const searchOrders = async ({ product_id, customer_id }) => {
+  let result = await orderRepository.findAll();
 
   if (product_id !== undefined) {
     const productId = Number(product_id);
