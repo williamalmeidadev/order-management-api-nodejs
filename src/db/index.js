@@ -1,49 +1,53 @@
 import { ClassicLevel } from 'classic-level';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const dbPath = path.join(__dirname, '../../data/leveldb');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-let db = null;
-
-async function initDB() {
-  if (db) {
-    return db;
+class DB {
+  constructor(dataType) {
+    this.dataType = dataType;
+    this.dbPath = path.join(__dirname, `../../data/databases/${dataType}`);
+    this.db = null;
   }
 
-  try {
-    db = new ClassicLevel(dbPath, {
-      valueEncoding: 'json',
-      createIfMissing: true,
-      errorIfExists: false
-    });
+  async init() {
+    if (this.db) {
+      return this.db;
+    }
 
-    await db.open();
-    console.log('LevelDB connected successfully');
-    return db;
-  } catch (error) {
-    console.error('Error connecting to LevelDB:', error);
-    throw error;
+    try {
+      this.db = new ClassicLevel(this.dbPath, {
+        valueEncoding: 'json',
+        createIfMissing: true,
+        errorIfExists: false
+      });
+
+      await this.db.open();
+      console.log(`LevelDB connected successfully for ${this.dataType}`);
+      return this.db;
+    } catch (error) {
+      console.error(`Error connecting to LevelDB for ${this.dataType}:`, error);
+      throw error;
+    }
+  }
+
+  get() {
+    if (!this.db) {
+      throw new Error(`Database for ${this.dataType} not initialized. Call init() first.`);
+    }
+    return this.db;
+  }
+
+  async close() {
+    if (this.db) {
+      await this.db.close();
+      this.db = null;
+      console.log(`LevelDB disconnected for ${this.dataType}`);
+    }
   }
 }
 
-function getDB() {
-  if (!db) {
-    throw new Error('Database not initialized. Call initDB() first.');
-  }
-  return db;
-}
-
-
-async function closeDB() {
-  if (db) {
-    await db.close();
-    db = null;
-    console.log('LevelDB disconnected');
-  }
-}
-
-export {
-  initDB,
-  getDB,
-  closeDB
-};
+export default DB;
