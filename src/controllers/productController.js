@@ -45,7 +45,7 @@ const deleteProduct = async (req, res) => {
     if (!deletedProduct) return res.status(404).json({ message: 'Product not found' });
     res.status(200).json(deletedProduct);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
