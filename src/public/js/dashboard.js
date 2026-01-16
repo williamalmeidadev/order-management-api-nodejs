@@ -123,21 +123,25 @@ function renderProducts() {
         const actions = document.createElement('div');
         actions.className = 'item-actions';
         
-        const btnEdit = document.createElement('button');
-        btnEdit.className = 'btn-edit';
-        btnEdit.textContent = 'Edit';
-        btnEdit.onclick = () => editProduct(product.id);
-        
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'btn-delete';
-        btnDelete.textContent = 'Delete';
-        btnDelete.onclick = () => deleteProduct(product.id);
-        
-        actions.appendChild(btnEdit);
-        actions.appendChild(btnDelete);
+        if (isAdmin()) {
+            const btnEdit = document.createElement('button');
+            btnEdit.className = 'btn-edit';
+            btnEdit.textContent = 'Edit';
+            btnEdit.onclick = () => editProduct(product.id);
+            
+            const btnDelete = document.createElement('button');
+            btnDelete.className = 'btn-delete';
+            btnDelete.textContent = 'Delete';
+            btnDelete.onclick = () => deleteProduct(product.id);
+            
+            actions.appendChild(btnEdit);
+            actions.appendChild(btnDelete);
+        }
         
         header.appendChild(title);
-        header.appendChild(actions);
+        if (isAdmin()) {
+            header.appendChild(actions);
+        }
         
         const info = document.createElement('div');
         info.className = 'item-info';
@@ -282,21 +286,25 @@ function renderCustomers() {
         const actions = document.createElement('div');
         actions.className = 'item-actions';
         
-        const btnEdit = document.createElement('button');
-        btnEdit.className = 'btn-edit';
-        btnEdit.textContent = 'Edit';
-        btnEdit.onclick = () => editCustomer(customer.id);
-        
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'btn-delete';
-        btnDelete.textContent = 'Delete';
-        btnDelete.onclick = () => deleteCustomer(customer.id);
-        
-        actions.appendChild(btnEdit);
-        actions.appendChild(btnDelete);
+        if (isAdmin()) {
+            const btnEdit = document.createElement('button');
+            btnEdit.className = 'btn-edit';
+            btnEdit.textContent = 'Edit';
+            btnEdit.onclick = () => editCustomer(customer.id);
+            
+            const btnDelete = document.createElement('button');
+            btnDelete.className = 'btn-delete';
+            btnDelete.textContent = 'Delete';
+            btnDelete.onclick = () => deleteCustomer(customer.id);
+            
+            actions.appendChild(btnEdit);
+            actions.appendChild(btnDelete);
+        }
         
         header.appendChild(title);
-        header.appendChild(actions);
+        if (isAdmin()) {
+            header.appendChild(actions);
+        }
         
         const info = document.createElement('div');
         info.className = 'item-info';
@@ -458,21 +466,25 @@ function renderOrders() {
         const actions = document.createElement('div');
         actions.className = 'item-actions';
         
-        const btnEdit = document.createElement('button');
-        btnEdit.className = 'btn-edit';
-        btnEdit.textContent = 'Edit';
-        btnEdit.onclick = () => editOrder(order.id);
-        
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'btn-delete';
-        btnDelete.textContent = 'Delete';
-        btnDelete.onclick = () => deleteOrder(order.id);
-        
-        actions.appendChild(btnEdit);
-        actions.appendChild(btnDelete);
+        if (isAdmin()) {
+            const btnEdit = document.createElement('button');
+            btnEdit.className = 'btn-edit';
+            btnEdit.textContent = 'Edit';
+            btnEdit.onclick = () => editOrder(order.id);
+            
+            const btnDelete = document.createElement('button');
+            btnDelete.className = 'btn-delete';
+            btnDelete.textContent = 'Delete';
+            btnDelete.onclick = () => deleteOrder(order.id);
+            
+            actions.appendChild(btnEdit);
+            actions.appendChild(btnDelete);
+        }
         
         header.appendChild(title);
-        header.appendChild(actions);
+        if (isAdmin()) {
+            header.appendChild(actions);
+        }
         
         const customerDiv = document.createElement('div');
         customerDiv.className = 'item-info';
@@ -892,6 +904,21 @@ function clearSearch() {
     container.innerHTML = '<div class="empty-message">Use the filters above to search orders</div>';
 }
 
+function isAdmin() {
+    return currentUserRole === 'admin';
+}
+
+function hideFormSections() {
+    if (!isAdmin()) {
+        document.querySelectorAll('.section').forEach(section => {
+            const form = section.querySelector('form');
+            if (form && form.id !== 'searchForm') {
+                section.style.display = 'none';
+            }
+        });
+    }
+}
+
 async function checkUserRole() {
     try {
         const response = await fetch(`${API_URL}/login/verify`, {
@@ -905,6 +932,8 @@ async function checkUserRole() {
             if (currentUserRole === 'admin') {
                 document.getElementById('usersTabBtn').style.display = 'flex';
             }
+            
+            hideFormSections();
         }
     } catch (error) {
         console.error('Error checking user role:', error);
@@ -956,21 +985,25 @@ function renderUsers() {
         const actions = document.createElement('div');
         actions.className = 'item-actions';
         
-        const btnEdit = document.createElement('button');
-        btnEdit.className = 'btn-edit';
-        btnEdit.textContent = 'Edit';
-        btnEdit.onclick = () => editUser(user.username);
-        
-        const btnDelete = document.createElement('button');
-        btnDelete.className = 'btn-delete';
-        btnDelete.textContent = 'Delete';
-        btnDelete.onclick = () => deleteUser(user.username);
-        
-        actions.appendChild(btnEdit);
-        actions.appendChild(btnDelete);
+        if (isAdmin()) {
+            const btnEdit = document.createElement('button');
+            btnEdit.className = 'btn-edit';
+            btnEdit.textContent = 'Edit';
+            btnEdit.onclick = () => editUser(user.username);
+            
+            const btnDelete = document.createElement('button');
+            btnDelete.className = 'btn-delete';
+            btnDelete.textContent = 'Delete';
+            btnDelete.onclick = () => deleteUser(user.username);
+            
+            actions.appendChild(btnEdit);
+            actions.appendChild(btnDelete);
+        }
         
         header.appendChild(title);
-        header.appendChild(actions);
+        if (isAdmin()) {
+            header.appendChild(actions);
+        }
         
         const info = document.createElement('div');
         info.className = 'item-info';
