@@ -114,7 +114,9 @@ export const getUserByUsername = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { username } = req.params;
-    const updatedUser = await loginService.updateUser(username, req.body);
+    const currentUsername = req.user.username;
+    
+    const updatedUser = await loginService.updateUser(username, req.body, currentUsername);
     
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
@@ -134,12 +136,9 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { username } = req.params;
+    const currentUsername = req.user.username;
     
-    if (req.user.username === username) {
-      return res.status(403).json({ message: 'You cannot delete your own account' });
-    }
-
-    const deletedUser = await loginService.deleteUser(username);
+    const deletedUser = await loginService.deleteUser(username, currentUsername);
     
     if (!deletedUser) {
       return res.status(404).json({ message: 'User not found' });

@@ -86,11 +86,15 @@ export const createUser = async ({ username, password, role, email }) => {
   return newUser;
 };
 
-export const updateUser = async (username, { password, role, email }) => {
+export const updateUser = async (username, { password, role, email }, currentUsername) => {
   const user = await userRepository.findByUsername(username);
   
   if (!user) {
     return null;
+  }
+
+  if (currentUsername === username && role !== undefined && user.role !== role) {
+    throw new Error('You cannot change your own role');
   }
 
   if (password !== undefined) {
@@ -127,7 +131,11 @@ export const updateUser = async (username, { password, role, email }) => {
   return user;
 };
 
-export const deleteUser = async (username) => {
+export const deleteUser = async (username, currentUsername) => {
+  if (currentUsername === username) {
+    throw new Error('You cannot delete your own account');
+  }
+
   const user = await userRepository.findByUsername(username);
   
   if (!user) {

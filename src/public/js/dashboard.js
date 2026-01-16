@@ -928,6 +928,7 @@ async function checkUserRole() {
         if (response.ok) {
             const data = await response.json();
             currentUserRole = data.user.role;
+            window.currentUsername = data.user.username;
             
             if (currentUserRole === 'admin') {
                 document.getElementById('usersTabBtn').style.display = 'flex';
@@ -1093,6 +1094,16 @@ function editUser(username) {
     document.getElementById('userPassword').required = false;
     document.getElementById('userPassword').placeholder = 'Leave blank to keep current password';
     document.getElementById('userRole').value = user.role;
+    
+    const isEditingSelf = window.currentUsername === username;
+    if (isEditingSelf) {
+        document.getElementById('userRole').disabled = true;
+        document.getElementById('userRole').title = 'You cannot change your own role';
+    } else {
+        document.getElementById('userRole').disabled = false;
+        document.getElementById('userRole').title = '';
+    }
+    
     document.getElementById('btnSaveUser').textContent = 'Update User';
     document.getElementById('btnCancelUser').style.display = 'inline-block';
     
@@ -1106,6 +1117,8 @@ function cancelUserEdit() {
     editingUserId = null;
     document.getElementById('userForm').reset();
     document.getElementById('userUsername').disabled = false;
+    document.getElementById('userRole').disabled = false;
+    document.getElementById('userRole').title = '';
     document.getElementById('userPassword').required = true;
     document.getElementById('userPassword').placeholder = '';
     document.getElementById('btnSaveUser').textContent = 'Save User';
