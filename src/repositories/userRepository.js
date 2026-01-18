@@ -36,30 +36,38 @@ class UserRepository {
   async findByUsername(username) {
     await this.init();
     const db = this.db.get();
+    const iterator = db.iterator();
     try {
-      for await (const [key, value] of db.iterator()) {
+      for await (const [key, value] of iterator) {
         if (value.username === username) {
+          await iterator.close();
           return value;
         }
       }
       return null;
     } catch (error) {
       throw error;
+    } finally {
+      await iterator.close();
     }
   }
 
   async findByEmail(email) {
     await this.init();
     const db = this.db.get();
+    const iterator = db.iterator();
     try {
-      for await (const [key, value] of db.iterator()) {
+      for await (const [key, value] of iterator) {
         if (value.email === email) {
+          await iterator.close();
           return value;
         }
       }
       return null;
     } catch (error) {
       throw error;
+    } finally {
+      await iterator.close();
     }
   }
 
@@ -67,10 +75,15 @@ class UserRepository {
     await this.init();
     const db = this.db.get();
     const users = [];
-    for await (const [key, value] of db.iterator()) {
-      users.push(value);
+    const iterator = db.iterator();
+    try {
+      for await (const [key, value] of iterator) {
+        users.push(value);
+      }
+      return users;
+    } finally {
+      await iterator.close();
     }
-    return users;
   }
 
   async update(id, user) {
@@ -96,8 +109,10 @@ class UserRepository {
   }
 
   async close() {
-    await this.db.close();
-    this.initialized = false;
+    if (this.initialized) {
+      await this.db.close();
+      this.initialized = false;
+    }
   }
 }
 

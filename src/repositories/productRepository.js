@@ -37,10 +37,15 @@ class ProductRepository {
     await this.init();
     const db = this.db.get();
     const products = [];
-    for await (const [key, value] of db.iterator()) {
-      products.push(value);
+    const iterator = db.iterator();
+    try {
+      for await (const [key, value] of iterator) {
+        products.push(value);
+      }
+      return products;
+    } finally {
+      await iterator.close();
     }
-    return products;
   }
 
   async update(id, product) {
@@ -66,8 +71,10 @@ class ProductRepository {
   }
 
   async close() {
-    await this.db.close();
-    this.initialized = false;
+    if (this.initialized) {
+      await this.db.close();
+      this.initialized = false;
+    }
   }
 }
 
