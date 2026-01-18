@@ -37,10 +37,15 @@ class CustomerRepository {
     await this.init();
     const db = this.db.get();
     const customers = [];
-    for await (const [key, value] of db.iterator()) {
-      customers.push(value);
+    const iterator = db.iterator();
+    try {
+      for await (const [key, value] of iterator) {
+        customers.push(value);
+      }
+      return customers;
+    } finally {
+      await iterator.close();
     }
-    return customers;
   }
 
   async update(id, customer) {
@@ -66,8 +71,10 @@ class CustomerRepository {
   }
 
   async close() {
-    await this.db.close();
-    this.initialized = false;
+    if (this.initialized) {
+      await this.db.close();
+      this.initialized = false;
+    }
   }
 }
 
