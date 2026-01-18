@@ -43,10 +43,19 @@ class DB {
 
   async close() {
     if (this.db) {
-      await this.db.close();
-      this.db = null;
-      console.log(`LevelDB disconnected for ${this.dataType}`);
+      try {
+        await this.db.close();
+        this.db = null;
+        console.log(`LevelDB disconnected for ${this.dataType}`);
+      } catch (error) {
+        console.error(`Error closing LevelDB for ${this.dataType}:`, error);
+        throw error;
+      }
     }
+  }
+
+  isOpen() {
+    return this.db !== null;
   }
 }
 
