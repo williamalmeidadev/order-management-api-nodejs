@@ -122,27 +122,44 @@ The project follows a **layered architecture** pattern:
 - **Services**: Implement business logic, data validation, and password hashing
 - **Repository**: Abstract data access operations
 - **Database**: Persistent storage using LevelDB (embedded NoSQL database)
-┌─────────────────▼───────────────────┐
-│         Data Layer                  │
-│   (In-memory storage)               │
-└─────────────────────────────────────┘
-```
 
-### Layer Responsibilities
+## Getting Started
 
-- **Routes**: Define API endpoints and HTTP methods
-- **Controllers**: Handle HTTP requests/responses and call services
-- **Services**: Implement business logic and data validation
-- **Data**: Manage data storage and retrieval
+### Prerequisites
 
-## Getting Started**
+- **Node.js** (v14 or higher)
+- **npm** (v6 or higher)
+
+### Installation
+
+1. **Clone the repository**
+   
+   ```bash
+   git clone https://github.com/williamalmeidadev/order-management-api-nodejs.git
+   cd order-management-api-nodejs
+   ```
+
+2. **Install dependencies**
+   
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
    
    Create a `.env` file in the root directory:
    ```env
+   # JWT Configuration
+   JWT_SECRET=your-secret-key-here
+   
    # CORS Configuration
    CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
    
-   # Jeed the database with an admin user**
+   # Server Configuration
+   PORT=3000
+   ```
+
+4. **Seed the database with an admin user**
    
    ```bash
    npm run seed
@@ -169,15 +186,23 @@ The project follows a **layered architecture** pattern:
 6. **Access the application**
    
    Open your browser and navigate to:
+   ```
+   http://localhost:3000
+   ```
+   
+   Login with the default admin credentials:
+   - **Username**: `admin`
+   - **Password**: `admin123`
+
+## API Documentation
+
+Base URL: `http://localhost:3000/api`
+
+All API endpoints (except login) require authentication via JWT token sent as an HttpOnly cookie.
 
 ### Authentication
 
-All product endpoints require authentication.
-
-#### Get All Products
-```http
-GET /api/products
-Cookie: token=<jwt-token>
+#### Login
 ```http
 POST /api/login
 Content-Type: application/json
@@ -191,7 +216,6 @@ Content-Type: application/json
 **Success Response (200):**
 ```json
 {
-Cookie: token=<jwt-token>
   "user": {
     "userId": "uuid-here",
     "username": "admin",
@@ -208,8 +232,7 @@ GET /api/login/verify
 Cookie: token=<jwt-token>
 ```
 
-**okie: token=<jwt-token>
-CoResponse (200):**
+**Response (200):**
 ```json
 {
   "userId": "uuid-here",
@@ -239,8 +262,7 @@ Cookie: token=<jwt-token>
 POST /api/logout
 Cookie: token=<jwt-token>
 ```
-okie: token=<jwt-token>
-Co
+
 **Response (200):**
 ```json
 {
@@ -259,7 +281,6 @@ All user management endpoints require admin role.
 GET /api/login/all
 Cookie: token=<jwt-token>
 ```
-Cookie: token=<jwt-token>
 
 **Response (200):**
 ```json
@@ -284,12 +305,9 @@ Cookie: token=<jwt-token>
 POST /api/login/create
 Cookie: token=<jwt-token>
 Content-Type: application/json
-All customer endpoints require authentication.
 
-#### Get All Customers
-```http
-GET /api/customers
-Cookie: token=<jwt-token>user",
+{
+  "username": "newuser",
   "password": "password123",
   "email": "user@example.com",
   "role": "user"
@@ -303,13 +321,11 @@ Cookie: token=<jwt-token>user",
 - `role`: required, must be "admin" or "user"
 
 #### Update User
-Cookie: token=<jwt-token>
-```
-
-#### Create Customer
 ```http
-POST /api/customers
+PUT /api/login/:username
 Cookie: token=<jwt-token>
+Content-Type: application/json
+
 {
   "password": "newpassword123",
   "email": "newemail@example.com",
@@ -328,11 +344,27 @@ Cookie: token=<jwt-token>
 **Note:** Users cannot delete themselves.
 
 ---
-   ```
-   http://localhost:3000
-   ```
-   
-  okie: token=<jwt-token>
+
+### Customers
+
+All customer endpoints require authentication.
+
+#### Get All Customers
+```http
+GET /api/customers
+Cookie: token=<jwt-token>
+```
+
+#### Get Customer by ID
+```http
+GET /api/customers/:id
+Cookie: token=<jwt-token>
+```
+
+#### Create Customer
+```http
+POST /api/customers
+Cookie: token=<jwt-token>
 Content-Type: application/json
 
 {
@@ -341,47 +373,46 @@ Content-Type: application/json
 }
 ```
 
+**Validation Rules:**
+- `name`: required, non-empty string
+- `email`: required, valid email format
+
+#### Update Customer
+```http
+PUT /api/customers/:id
+Cookie: token=<jwt-token>
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "email": "jane.smith@example.com"
+}
+```
+
 #### Delete Customer
 ```http
 DELETE /api/customers/:id
 Cookie: token=<jwt-token>
-   npm run dev
-   ```
-   
-   For production:
-All order endpoints require authentication.
+```
 
-#### Get All Orders
-```http
-GET /api/orders
-Cookie: token=<jwt-token>
-
-5. **Access the application**
-   
-   Open your browser and navigate to:
-   ```
-   http://localhost:3000
-   ```
-
-## API Documentation
-
-Base URL: `http://localhost:3000/api`
+---
 
 ### Products
+
+All product endpoints require authentication.
 
 #### Get All Products
 ```http
 GET /api/products
+Cookie: token=<jwt-token>
 ```
 
 **Response:**
-Cookie: token=<jwt-token>
-```
-
-#### Search Orders
-```http
-GET /api/orders/search?customerId=1&productId=2
-Cookie: token=<jwt-token>
+```json
+[
+  {
+    "id": "product-uuid-1",
+    "name": "Product Name",
     "value": 29.99
   }
 ]
@@ -390,12 +421,13 @@ Cookie: token=<jwt-token>
 #### Get Product by ID
 ```http
 GET /api/products/:id
+Cookie: token=<jwt-token>
 ```
 
 **Response:**
 ```json
 {
-  "id": 1,
+  "id": "product-uuid",
   "name": "Product Name",
   "value": 29.99
 }
@@ -404,23 +436,23 @@ GET /api/products/:id
 #### Create Product
 ```http
 POST /api/products
-Content-Type: application/json
-okie: token=<jwt-token>
+Cookie: token=<jwt-token>
 Content-Type: application/json
 
 {
-  "customerId": "customer-uuid",
-  "items": [
-    {
-      "productId": "product-uuid-1",
-      "quantity": 2
-    },
-    {
-      "productId": "product-uuid-2"
+  "name": "New Product",
+  "value": 49.99
+}
+```
+
+**Validation Rules:**
+- `name`: required, non-empty string
+- `value`: required, number > 0
+
 **Success Response (201):**
 ```json
 {
-  "id": 2,
+  "id": "product-uuid",
   "name": "New Product",
   "value": 49.99
 }
@@ -436,6 +468,7 @@ Content-Type: application/json
 #### Update Product
 ```http
 PUT /api/products/:id
+Cookie: token=<jwt-token>
 Content-Type: application/json
 
 {
@@ -447,9 +480,77 @@ Content-Type: application/json
 **Response (200):**
 ```json
 {
-  "id": 1,
+  "id": "product-uuid",
   "name": "Updated Product",
-  okie: token=<jwt-token>
+  "value": 59.99
+}
+```
+
+#### Delete Product
+```http
+DELETE /api/products/:id
+Cookie: token=<jwt-token>
+```
+
+---
+
+### Orders
+
+All order endpoints require authentication.
+
+#### Get All Orders
+```http
+GET /api/orders
+Cookie: token=<jwt-token>
+```
+
+#### Get Order by ID
+```http
+GET /api/orders/:id
+Cookie: token=<jwt-token>
+```
+
+#### Search Orders
+```http
+GET /api/orders/search?customerId=<uuid>&productId=<uuid>
+Cookie: token=<jwt-token>
+```
+
+**Query Parameters:**
+- `customerId` (optional): Filter by customer UUID
+- `productId` (optional): Filter by product UUID
+
+#### Create Order
+```http
+POST /api/orders
+Cookie: token=<jwt-token>
+Content-Type: application/json
+
+{
+  "customerId": "customer-uuid",
+  "items": [
+    {
+      "productId": "product-uuid-1",
+      "quantity": 2
+    },
+    {
+      "productId": "product-uuid-2",
+      "quantity": 1
+    }
+  ]
+}
+```
+
+**Validation Rules:**
+- `customerId`: required, must exist
+- `items`: required, non-empty array
+- `items[].productId`: required, must exist
+- `items[].quantity`: required, integer > 0
+
+#### Update Order
+```http
+PUT /api/orders/:id
+Cookie: token=<jwt-token>
 Content-Type: application/json
 
 {
@@ -471,7 +572,9 @@ Cookie: token=<jwt-token>
 
 ---
 
-### Customers with secure authentication.
+## Frontend Interface
+
+The web interface is built with vanilla JavaScript and features a modern, dark-themed design.
 
 ### Main Sections
 
@@ -506,7 +609,16 @@ Cookie: token=<jwt-token>
      - Filter orders by product
      - Combined filtering support
      - Display order details with calculated totals
-Secure Authentication**: JWT-based login system
+
+3. **User Session**
+   - Persistent login with cookies
+   - Automatic token validation
+   - Logout functionality
+   - Protected routes
+
+### User Experience Features
+
+- **Secure Authentication**: JWT-based login system
 - **Session Persistence**: Stay logged in across page reloads
 - **Automatic Redirects**: Redirect to login if not authenticated
 - **Responsive Design**: Works on desktop and mobile devices
@@ -515,9 +627,12 @@ Secure Authentication**: JWT-based login system
 - **Smooth Transitions**: Tab switching with smooth animations
 - **Visual Feedback**: Hover effects and button states
 - **Data Persistence**: LevelDB ensures data survives server restarts
-{
-  "name": "Jane Smith",
-  "edata/
+
+## Project Structure
+
+```
+order-management-api-nodejs/
+├── data/
 │   └── databases/            # LevelDB database files
 │       ├── customers/        # Customer data
 │       ├── orders/           # Order data
@@ -551,7 +666,32 @@ Secure Authentication**: JWT-based login system
 │   │   ├── customerRepository.js
 │   │   ├── orderRepository.js
 │   │   ├── productRepository.js
-│   │   └── userR(v5.2.1) - Web framework
+│   │   └── userRepository.js
+│   ├── routes/               # API route definitions
+│   │   ├── customerRoutes.js
+│   │   ├── loginRoutes.js
+│   │   ├── orderRoutes.js
+│   │   └── productRoutes.js
+│   ├── services/             # Business logic
+│   │   ├── customerService.js
+│   │   ├── loginService.js   # Auth & user management
+│   │   ├── orderService.js
+│   │   └── productService.js
+│   ├── app.js                # Express app configuration
+│   ├── seed.js               # Database seeder (creates admin)
+│   └── server.js             # Server entry point
+├── .env                      # Environment variables (create this)
+├── .gitignore
+├── package.json
+├── LICENSE
+└── README.md
+```
+
+## Technologies
+
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** (v5.2.1) - Web framework
 - **LevelDB** (classic-level v3.0.0) - Embedded NoSQL database
 - **JWT** (jsonwebtoken v9.0.3) - Token-based authentication
 - **bcrypt** (v6.0.0) - Password hashing
@@ -581,14 +721,6 @@ Secure Authentication**: JWT-based login system
 - **Service layer** pattern for business logic
 - **Middleware pattern** for authentication & authorization
 - **RESTful** API design
-  "email": "jane.doe@example.com"
-}
-```
-
-#### Delete Customer
-```http
-DELETE /api/customers/:id
-```
 
 ---
 
@@ -602,261 +734,23 @@ The application uses the following environment variables:
 | `CORS_ORIGINS` | Comma-separated list of allowed origins | No | Empty (allows all) |
 | `PORT` | Server port number | No | 3000 |
 
-### Database
+## Database
 
 The application uses **LevelDB** for persistent data storage:
 
 - **Type**: Embedded NoSQL key-value store
 - **Location**: `data/databases/` directory
 - **Advantages**: 
-  - No separate datas:
-
-**Login:**
-```bash
-curl -X POST http://localhost:3000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}' \
-  -c cookies.txt
-```
-JWT Authentication** - Secure token-based authentication
-- **Password Hashing** - bcrypt with 10 salt rounds
-- **HttpOnly Cookies** - Prevents XSS attacks on tokens
-- **Role-Based Access Control** - Admin and User roles with permission checks
-- **Protected Routes** - Authentication middleware on all sensitive endpoints
-- **CORS Configuration** - Whitelist of allowed origins
-- **Content Security Policy** - CSP header (frame-ancestors 'none')
-- **Input Validation** - Comprehensive validation on all endpoints
-- **Error Handling** - Generic error messages without exposing sensitive information
-- **Session Management** - Automatic token verification and expiration (24h)
-- **Password Policies** - Enforced minimum requirements
-  -H "Content-Type: application/json" \
-  -b cookies.txt \
-  -d '{"name":"Test Product","value":19.99}'
-```
-
-**Get All Products (authenticated):**
-```bash
-curl -X GET http://localhost:3000/api/products \
-  -b cookies.txt
+  - No separate database server needed
+  - Fast read/write operations
+  - Persistent storage
+  - Automatic data recovery
+  - Low memory footprint
+- **Collections**:
   - `users/` - User accounts and credentials
   - `customers/` - Customer information
   - `products/` - Product catalog
   - `orders/` - Order records
-```json
-
-### Development Guidelines
-
-- Follow the existing code structure and patterns
-- Use meaningful variable and function names
-- Add input validation for all user inputs
-- Test authentication and authorization flows
-- Keep security best practices in mind
-- Update documentation for new features
-[
-  {
-    "id": 1,
-    "customerId": 1,
-    "items": [
-      {
-        "productId": 1,
-        "quantity": 2
-      }
-    ]
-  }
-]
-```
-
-#### Get Order by ID
-```http
-GET /api/orders/:id
-```
-
-#### Search Orders
-```http
-GET /api/orders/search?customerId=1&productId=2
-```
-
-**Query Parameters:**
-- `customerId` (optional): Filter by customer ID
-- `productId` (optional): Filter by product ID
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "customerId": 1,
-    "items": [
-      {
-        "productId": 2,
-        "quantity": 3
-      }
-    ]
-  }
-]
-```
-
-#### Create Order
-```http
-POST /api/orders
-Content-Type: application/json
-
-{
-  "customerId": 1,
-  "items": [
-    {
-      "productId": 1,
-      "quantity": 2
-    },
-    {
-      "productId": 3,
-      "quantity": 1
-    }
-  ]
-}
-```
-
-**Validation Rules:**
-- `customerId`: required, must exist
-- `items`: required, non-empty array
-- `items[].productId`: required, must exist
-- `items[].quantity`: required, integer > 0
-
-**Success Response (201):**
-```json
-{
-  "id": 2,
-  "customerId": 1,
-  "items": [
-    {
-      "productId": 1,
-      "quantity": 2
-    },
-    {
-      "productId": 3,
-      "quantity": 1
-    }
-  ]
-}
-```
-
-#### Update Order
-```http
-PUT /api/orders/:id
-Content-Type: application/json
-
-{
-  "customerId": 1,
-  "items": [
-    {
-      "productId": 2,
-      "quantity": 5
-    }
-  ]
-}
-```
-
-#### Delete Order
-```http
-DELETE /api/orders/:id
-```
-
----
-
-## Frontend Interface
-
-The web interface is built with vanilla JavaScript and features a modern, dark-themed design.
-
-### Main Sections
-
-1. **Products Tab**
-   - Create and edit products
-   - View product list with prices
-   - Delete products
-   - Real-time price formatting
-
-2. **Customers Tab**
-   - Register new customers
-   - Edit customer information
-   - View customer list
-   - Email validation
-
-3. **Orders Tab**
-   - Create orders with multiple items
-   - Select customer from dropdown
-   - Add/remove product items dynamically
-   - Automatic subtotal calculation
-   - Edit existing orders
-
-4. **Search Orders Tab**
-   - Filter orders by customer
-   - Filter orders by product
-   - Combined filtering support
-   - Display order details with calculated totals
-
-### User Experience Features
-
-- **Responsive Design**: Works on desktop and mobile devices
-- **Real-time Validation**: Immediate feedback on form inputs
-- **Error Messages**: Clear, actionable error messages from the backend
-- **Smooth Transitions**: Tab switching with smooth animations
-- **Visual Feedback**: Hover effects and button states
-- **Data Persistence**: Orders update related selects automatically
-
-## Project Structure
-
-```
-order-management-api-nodejs/
-├── src/
-│   ├── controllers/          # Request handlers
-│   │   ├── customerController.js
-│   │   ├── orderController.js
-│   │   └── productController.js
-│   ├── data/                 # In-memory data storage
-│   │   ├── customers.js
-│   │   ├── orders.js
-│   │   └── products.js
-│   ├── public/               # Frontend files
-│   │   ├── index.html        # Main HTML file
-│   │   ├── script.js         # Frontend JavaScript
-│   │   └── style.css         # Styling
-│   ├── routes/               # API route definitions
-│   │   ├── costumerRoutes.js
-│   │   ├── orderRoutes.js
-│   │   └── productRoutes.js
-│   ├── services/             # Business logic
-│   │   ├── customerService.js
-│   │   ├── orderService.js
-│   │   └── productService.js
-│   ├── app.js                # Express app configuration
-│   └── server.js             # Server entry point
-├── .env                      # Environment variables (create this)
-├── .gitignore
-├── package.json
-├── LICENSE
-└── README.md
-```
-
-## Technologies
-
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web framework
-- **CORS** - Cross-Origin Resource Sharing
-- **dotenv** - Environment variable management
-- **Nodemon** - Development auto-reload (dev dependency)
-
-### Frontend
-- **HTML5** - Structure
-- **CSS3** - Styling with modern features
-- **Vanilla JavaScript** - No framework dependencies
-- **Fetch API** - HTTP requests
-
-### Architecture Patterns
-- **MVC-inspired** layered architecture
-- **RESTful** API design
-- **Service layer** pattern for business logic
-- **Separation of concerns**
 
 ## Development
 
@@ -868,15 +762,6 @@ The development mode uses `nodemon` to automatically restart the server when fil
 npm run dev
 ```
 
-### Adding a Database
-
-To replace in-memory storage with a database:
-
-1. Install a database driver (e.g., `pg` for PostgreSQL, `mysql2` for MySQL)
-2. Update the data layer files in `src/data/`
-3. Implement database connection and queries
-4. Update service layer to use async/await
-
 ### API Testing
 
 You can test the API using:
@@ -885,19 +770,52 @@ You can test the API using:
 - **Thunder Client** (VS Code extension)
 - **Insomnia**
 
-Example curl command:
+**Example curl commands:**
+
+**Login:**
+```bash
+curl -X POST http://localhost:3000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' \
+  -c cookies.txt
+```
+
+**Create Product (authenticated):**
 ```bash
 curl -X POST http://localhost:3000/api/products \
   -H "Content-Type: application/json" \
+  -b cookies.txt \
   -d '{"name":"Test Product","value":19.99}'
 ```
 
+**Get All Products (authenticated):**
+```bash
+curl -X GET http://localhost:3000/api/products \
+  -b cookies.txt
+```
+
+### Development Guidelines
+
+- Follow the existing code structure and patterns
+- Use meaningful variable and function names
+- Add input validation for all user inputs
+- Test authentication and authorization flows
+- Keep security best practices in mind
+- Update documentation for new features
+
 ## Security Features
 
-- **CORS configuration** with allowed origins
-- **Content Security Policy** header (frame-ancestors 'none')
-- **Input validation** on all endpoints
-- **Error handling** without exposing sensitive information
+- **JWT Authentication** - Secure token-based authentication
+- **Password Hashing** - bcrypt with 10 salt rounds
+- **HttpOnly Cookies** - Prevents XSS attacks on tokens
+- **Role-Based Access Control** - Admin and User roles with permission checks
+- **Protected Routes** - Authentication middleware on all sensitive endpoints
+- **CORS Configuration** - Whitelist of allowed origins
+- **Content Security Policy** - CSP header (frame-ancestors 'none')
+- **Input Validation** - Comprehensive validation on all endpoints
+- **Error Handling** - Generic error messages without exposing sensitive information
+- **Session Management** - Automatic token verification and expiration (24h)
+- **Password Policies** - Enforced minimum requirements
 
 ## License
 
