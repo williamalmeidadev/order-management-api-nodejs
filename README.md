@@ -43,7 +43,10 @@ This project is a complete order management system with enterprise-grade securit
 - Interact through both API endpoints and a web interface
 
 ## Features
-JWT Authentication** with secure token management
+
+### Backend Features
+- **RESTful API** with Express.js
+- **JWT Authentication** with secure token management
 - **Role-Based Access Control (RBAC)** - Admin and User roles
 - **Password hashing** with bcrypt (10 salt rounds)
 - **Cookie-based session management** with HttpOnly cookies
@@ -51,6 +54,11 @@ JWT Authentication** with secure token management
 - **CRUD operations** for Products, Customers, Orders, and Users
 - **Input validation** with detailed error messages
 - **Advanced search** functionality for orders
+- **CORS configuration** for security
+- **LevelDB database** for persistent data storage
+- **UUID-based ID generation** for all entities
+
+### Frontend Features
 - **Login system** with secure authentication
 - **Session management** with automatic redirect
 - **Modern, dark-themed UI** with responsive design
@@ -62,17 +70,17 @@ JWT Authentication** with secure token management
 - **Error handling** with user-friendly messages
 - **Edit and delete** functionality for all entities
 - **Logout functionality** with session cleanup
-- **Modern, dark-themed UI** with responsive design
-- **Tabbed navigation** for different sections
-- **Real-time form validation**
-- **Dynamic order management** with multiple items
-- **Product and customer selection** via dropdowns
-- **Order search** by customer or product
-- **Error handling** with user-friendly messages
-- **Edit and delete** functionality for all entities
 
 ## Architecture
- (JWT Token)
+
+The project follows a **layered architecture** pattern:
+
+```
+┌─────────────────────────────────────┐
+│         Frontend (Web UI)           │
+│    HTML + CSS + Vanilla JS          │
+└─────────────────┬───────────────────┘
+                  │ HTTP Requests (JWT Token)
 ┌─────────────────▼───────────────────┐
 │      Authentication Middleware      │
 │   (JWT verification, RBAC)          │
@@ -98,18 +106,22 @@ JWT Authentication** with secure token management
 ┌─────────────────▼───────────────────┐
 │      Repository Layer               │
 │   (Data access abstraction)         │
-└───Authentication Middleware**: Verify JWT tokens, check user roles, manage sessions
+└─────────────────┬───────────────────┘
+                  │
+┌─────────────────▼───────────────────┐
+│         Database Layer              │
+│   (LevelDB - Persistent storage)    │
+└─────────────────────────────────────┘
+```
+
+### Layer Responsibilities
+
+- **Authentication Middleware**: Verify JWT tokens, check user roles, manage sessions
 - **Routes**: Define API endpoints and HTTP methods
 - **Controllers**: Handle HTTP requests/responses and call services
 - **Services**: Implement business logic, data validation, and password hashing
 - **Repository**: Abstract data access operations
 - **Database**: Persistent storage using LevelDB (embedded NoSQL database)
-│   (LevelDB - Persistent storage)────┐
-│        Services Layer               │
-│   (Core business logic &            │
-│    data validation)                 │
-└─────────────────┬───────────────────┘
-                  │
 ┌─────────────────▼───────────────────┐
 │         Data Layer                  │
 │   (In-memory storage)               │
