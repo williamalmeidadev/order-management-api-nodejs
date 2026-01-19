@@ -1,12 +1,17 @@
-import { customers, getNextId } from '../data/customers.js';
+import customerRepository from '../repositories/customerRepository.js';
+import { v4 as uuidv4 } from 'uuid';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const getAllCustomers = () => customers;
+export const getAllCustomers = async () => {
+  return await customerRepository.findAll();
+};
 
-export const getCustomerById = (id) => customers.find(c => c.id === id);
+export const getCustomerById = async (id) => {
+  return await customerRepository.findById(id);
+};
 
-export const createCustomer = ({ name, email }) => {
+export const createCustomer = async ({ name, email }) => {
   if (typeof name !== 'string' || name.trim() === '') {
     throw new Error("'name' must be a non-empty string");
   }
@@ -14,13 +19,14 @@ export const createCustomer = ({ name, email }) => {
     throw new Error("'email' must be a valid email");
   }
 
-  const newCustomer = { id: getNextId(), name: name.trim(), email: email.toLowerCase() };
-  customers.push(newCustomer);
+  const id = uuidv4();
+  const newCustomer = { id, name: name.trim(), email: email.toLowerCase() };
+  await customerRepository.create(id, newCustomer);
   return newCustomer;
 };
 
-export const updateCustomer = (id, { name, email }) => {
-  const customer = customers.find(c => c.id === id);
+export const updateCustomer = async (id, { name, email }) => {
+  const customer = await customerRepository.findById(id);
   if (!customer) return null;
 
   if (name !== undefined) {
@@ -37,11 +43,13 @@ export const updateCustomer = (id, { name, email }) => {
     customer.email = email.toLowerCase();
   }
 
+  await customerRepository.update(id, customer);
   return customer;
 };
 
-export const deleteCustomer = (id) => {
-  const index = customers.findIndex(c => c.id === id);
-  if (index === -1) return null;
-  return customers.splice(index, 1)[0];
+export const deleteCustomer = async (id) => {
+  const customer = await customerRepository.findById(id);
+  if (!customer) return null;
+  await customerRepository.delete(id);
+  return customer;
 };
