@@ -1,9 +1,33 @@
+
 import orderRepository from '../repositories/orderRepository.js';
 import productRepository from '../repositories/productRepository.js';
 import customerRepository from '../repositories/customerRepository.js';
 import { v4 as uuidv4 } from 'uuid';
 
-const calculateTotal = async (items) => {
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+}
+
+export interface Order {
+  id: string;
+  customerId: string;
+  items: OrderItem[];
+  total: number;
+}
+
+export interface OrderCreateInput {
+  customerId: string;
+  items: OrderItem[];
+}
+
+export interface OrderUpdateInput {
+  customerId?: string;
+  items?: OrderItem[];
+}
+
+
+const calculateTotal = async (items: OrderItem[]): Promise<number> => {
   let sum = 0;
   for (const item of items) {
     const product = await productRepository.findById(item.productId);
@@ -14,15 +38,16 @@ const calculateTotal = async (items) => {
   return Number(sum.toFixed(2));
 };
 
-export const getAllOrders = async () => {
+
+export const getAllOrders = async (): Promise<Order[]> => {
   return await orderRepository.findAll();
 };
 
-export const getOrderById = async (id) => {
+export const getOrderById = async (id: string): Promise<Order | null> => {
   return await orderRepository.findById(id);
 };
 
-export const createOrder = async ({ customerId, items }) => {
+export const createOrder = async ({ customerId, items }: OrderCreateInput): Promise<Order> => {
   const customer = await customerRepository.findById(customerId);
   if (!customer) throw new Error('Order must have a valid customer');
 
@@ -42,7 +67,7 @@ export const createOrder = async ({ customerId, items }) => {
   const total = await calculateTotal(items);
 
   const id = uuidv4();
-  const newOrder = {
+  const newOrder: Order = {
     id,
     customerId,
     items,
@@ -53,7 +78,7 @@ export const createOrder = async ({ customerId, items }) => {
   return newOrder;
 };
 
-export const updateOrder = async (id, { customerId, items }) => {
+export const updateOrder = async (id: string, { customerId, items }: OrderUpdateInput): Promise<Order | null> => {
   const order = await orderRepository.findById(id);
   if (!order) return null;
 
@@ -83,15 +108,15 @@ export const updateOrder = async (id, { customerId, items }) => {
   return order;
 };
 
-export const deleteOrder = async (id) => {
+export const deleteOrder = async (id: string): Promise<Order | null> => {
   const order = await orderRepository.findById(id);
   if (!order) return null;
   await orderRepository.delete(id);
   return order;
 };
 
-export const searchOrders = async ({ product_id, customer_id }) => {
-  let result = await orderRepository.findAll();
+export const searchOrders = async ({ product_id, customer_id }: { product_id?: string; customer_id?: string }): Promise<Order[]> => {
+  let result: Order[] = await orderRepository.findAll();
 
   if (product_id !== undefined) {
     result = result.filter(order =>

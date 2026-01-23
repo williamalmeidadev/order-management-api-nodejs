@@ -1,15 +1,32 @@
+
 import productRepository from '../repositories/productRepository.js';
 import { v4 as uuidv4 } from 'uuid';
 
-const getAllProducts = async () => {
+export interface Product {
+  id: string;
+  name: string;
+  value: number;
+}
+
+export interface ProductCreateInput {
+  name: string;
+  value: number;
+}
+
+export interface ProductUpdateInput {
+  name?: string;
+  value?: number;
+}
+
+export const getAllProducts = async (): Promise<Product[]> => {
   return await productRepository.findAll();
 };
 
-const getProductById = async (id) => {
+export const getProductById = async (id: string): Promise<Product | null> => {
   return await productRepository.findById(id);
 };
 
-const createProduct = async ({ name, value }) => {
+export const createProduct = async ({ name, value }: ProductCreateInput): Promise<Product> => {
   if (typeof name !== 'string' || name.trim() === '') {
     throw new Error("'name' must be a non-empty string");
   }
@@ -21,18 +38,17 @@ const createProduct = async ({ name, value }) => {
   const fixedValue = Number(numValue.toFixed(2));
 
   const id = uuidv4();
-  const newProduct = {
+  const newProduct: Product = {
     id,
     name: name.trim(),
     value: fixedValue
   };
 
   await productRepository.create(id, newProduct);
-  
   return newProduct;
 };
 
-const updateProduct = async (id, { name, value }) => {
+export const updateProduct = async (id: string, { name, value }: ProductUpdateInput): Promise<Product | null> => {
   const product = await getProductById(id);
   if (!product) return null;
 
@@ -51,23 +67,12 @@ const updateProduct = async (id, { name, value }) => {
   }
 
   await productRepository.update(id, product);
-  
   return product;
 };
 
-const deleteProduct = async (id) => {
+export const deleteProduct = async (id: string): Promise<Product | null> => {
   const product = await getProductById(id);
   if (!product) return null;
-
   await productRepository.delete(id);
-  
   return product;
-};
-
-export {
-  getAllProducts,
-  getProductById,
-  createProduct,
-  updateProduct,
-  deleteProduct
 };
