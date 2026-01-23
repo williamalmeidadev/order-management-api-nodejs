@@ -5,13 +5,34 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { ROLES, ROLE_VALUES } from '../constants/roles.js';
 
+export interface User {
+  id: string;
+  username: string;
+  password: string;
+  email: string;
+  role: string;
+}
+
+export interface UserCreateInput {
+  username: string;
+  password: string;
+  role: string;
+  email: string;
+}
+
+export interface UserUpdateInput {
+  password?: string;
+  role?: string;
+  email?: string;
+}
+
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRATION = '24h';
 const SALT_ROUNDS = 10;
 
-export const authenticateUser = async (username, password) => {
+export const authenticateUser = async (username: string, password: string): Promise<User | null> => {
   const user = await userRepository.findByUsername(username);
   
   if (!user) {
@@ -27,19 +48,19 @@ export const authenticateUser = async (username, password) => {
   return user;
 };
 
-export const getAllUsers = async () => {
+export const getAllUsers = async (): Promise<User[]> => {
   return await userRepository.findAll();
 };
 
-export const getUserById = async (id) => {
+export const getUserById = async (id: string): Promise<User | null> => {
   return await userRepository.findById(id);
 };
 
-export const getUserByUsername = async (username) => {
+export const getUserByUsername = async (username: string): Promise<User | null> => {
   return await userRepository.findByUsername(username);
 };
 
-export const createUser = async ({ username, password, role, email }) => {
+export const createUser = async ({ username, password, role, email }: UserCreateInput): Promise<User> => {
   if (typeof username !== 'string' || username.trim() === '') {
     throw new Error("'username' must be a non-empty string");
   }
@@ -86,7 +107,7 @@ export const createUser = async ({ username, password, role, email }) => {
   return newUser;
 };
 
-export const updateUser = async (username, { password, role, email }, currentUsername) => {
+export const updateUser = async (username: string, { password, role, email }: UserUpdateInput, currentUsername: string): Promise<User | null> => {
   const user = await userRepository.findByUsername(username);
   
   if (!user) {
@@ -131,7 +152,7 @@ export const updateUser = async (username, { password, role, email }, currentUse
   return user;
 };
 
-export const deleteUser = async (username, currentUsername) => {
+export const deleteUser = async (username: string, currentUsername: string): Promise<User | null> => {
   if (currentUsername === username) {
     throw new Error('You cannot delete your own account');
   }
@@ -146,7 +167,7 @@ export const deleteUser = async (username, currentUsername) => {
   return user;
 };
 
-export const generateToken = (user) => {
+export const generateToken = (user: User): string => {
   const payload = {
     userId: user.id,
     username: user.username,
@@ -157,9 +178,9 @@ export const generateToken = (user) => {
   return token;
 };
 
-export const verifyToken = (token) => {
+export const verifyToken = (token: string): any | null => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET!);
     return decoded;
   } catch (error) {
     return null;
