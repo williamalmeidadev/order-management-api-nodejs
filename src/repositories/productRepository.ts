@@ -1,6 +1,9 @@
 import DB from '../db/index.js';
 
 class ProductRepository {
+  private db: any;
+  private initialized: boolean;
+
   constructor() {
     this.db = new DB('products');
     this.initialized = false;

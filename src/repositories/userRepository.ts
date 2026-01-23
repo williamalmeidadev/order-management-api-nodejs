@@ -1,6 +1,9 @@
 import DB from '../db/index.js';
 
 class UserRepository {
+  private db: any;
+  private initialized: boolean;
+
   constructor() {
     this.db = new DB('users');
     this.initialized = false;
