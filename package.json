@@ -2,12 +2,13 @@
   "name": "order-management-api-nodejs",
   "version": "1.0.0",
   "description": "Simple REST API in Node.js for managing products, customers, and orders.",
-  "main": "src/server.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "seed": "node src/seed.js",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "seed": "ts-node src/seed.ts",
     "test": "echo \"No tests specified\""
   },
   "repository": {
